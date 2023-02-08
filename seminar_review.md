@@ -115,6 +115,7 @@
   ![image](https://user-images.githubusercontent.com/108987773/217433139-6c789a59-6ed4-4f13-8b69-5907e9238160.png) ![image](https://user-images.githubusercontent.com/108987773/217433181-d5b894e1-2174-4ff9-8b3e-509efc67bdb0.png)
   - 위와 같은 문제를 해결하기 위해 **Margin Ranking Loss**를 사용하게 됨
   - 최종 Loss Function
+  
     ![image](https://user-images.githubusercontent.com/108987773/217433480-8e2e5092-873e-42a1-9403-7d5249e752e2.png)
     - Total Loss를 최소화 시키는 방법으로 학습이 진행됨
 
