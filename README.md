@@ -1,5 +1,5 @@
 # Active_Learning
-Studying Active Learning for anomaly detection
+Studying active learning for anomaly detection
 
 #### [Seminar Review]
 - [[Paper Review] Active Learning][link]
