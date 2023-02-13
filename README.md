@@ -6,8 +6,8 @@ Studying active learning for anomaly detection
 
 #### [Paper Review]
 - [A Survey of Deep Active Learning][link1]
-
-
+- Cost-Effective Active Learning for Melanoma Segmentation
+- Unsupervised Image Anomaly Detection and Segmentation Based on Pre-trained Feature Mapping
 
 
 
