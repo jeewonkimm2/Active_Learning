@@ -50,7 +50,7 @@
   - Medical Domain에선 U-Net(Convolutional + Deconvolutional architecture)이 잘 쓰임
 ---
 # <3> Proposed methodology
-1. Image uncertainty estimation
+1. Image uncertainty estimation : **Kullback-Leibler (KL)**
 - Complementary Sample Selection을 위한 active learning은 unlabeled data의 고유한 분포에 근거함
 
 
