@@ -80,6 +80,52 @@
 ---
 # <3> The Proposed PFM Framework
 
+Basic PFM -> Bidirectional PFM -> Multi-Hierarchical Bidirectional PFM으로 제시
+
+### 1. Pre-trained Feature Mapping
+  ![image](https://user-images.githubusercontent.com/108987773/219001960-8b55947c-dac3-4395-a4e7-fd910e072348.png)
+  - Main Idea : From one pre-trained space 에서 다른 pre-trained space로 맵핑하기 - 정상 이미지는 자유롭게 mapping이 가능하지만, 비정상 이미지는 mapping 불가능
+  
+  #### **"To construct a maping neural network"**
+  - Training : Only 정상 데이터 -> 정상 이미지에 대해서만 사전 훈련된 DCNN 모델 사이의 간격을 메울 수 있음
+  - Optimizer : Mean Squared Loss에 의해 최적화됨
+  - Anomaly 판단 : Anomaly 이미지가 큰 MSE(Mean Squared Error)를 낼 것임
+
+  - 과정
+ 
+    ![image](https://user-images.githubusercontent.com/108987773/219010989-ec7373fe-13fc-4032-898c-da7eff818bed.png)
+    - Fs : Source embedding feature map
+    - Ft : Target embedding feature map
+    - SNN : Pre-trained source neural network
+    - TNN : Pre-trained target neural network
+
+    ![image](https://user-images.githubusercontent.com/108987773/219012323-bc78429f-325c-4050-99f1-25f64c1c6d4e.png),![image](https://user-images.githubusercontent.com/108987773/219012355-eaeed8e1-9a64-4496-ae77-4d6f49506eec.png),![image](https://user-images.githubusercontent.com/108987773/219013489-ef7d5564-58ae-4bf6-be9b-d2911a772941.png)
+
+    - MNN : Feature mapping function
+    - Fms : Mapping 후 Feature Map
+    - θms는 정상 이미지에 대한 gradient descent method에 의해 optimization됨
+  
+    ![image](https://user-images.githubusercontent.com/108987773/219013681-67b89485-89de-4d6f-bee7-960a0f576a9b.png)=> Loss Function
+    
+    -For a testing image
+      - anomaly Scoring Map
+      
+      ![image](https://user-images.githubusercontent.com/108987773/219015069-06a5c882-9351-43fd-8d20-464094077743.png)
+      
+      - Anomaly Detection
+      
+      ![image](https://user-images.githubusercontent.com/108987773/219015256-a7186a18-c71a-4c31-a417-d083ad1e6996.png)
+
+      - Anomaly Segmentation
+      
+      Anomaly Regions이 항상 높은 점수를 받음
+
+
+
+
+
+
+
 
 
 
