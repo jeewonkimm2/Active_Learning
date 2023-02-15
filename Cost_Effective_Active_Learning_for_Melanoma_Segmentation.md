@@ -26,13 +26,6 @@
 
   발생할 수 있는 문제점 - 만약 p가 0.5이고 4개의 노드에서 값이 전달되는 구조였다면, 학습 시에는 확률적으로 평균 2개의 노드에 값이 전달됨. 하지만 테스트 시에는 4개의 노드에서 값이 모두 전달되기 때문에 모델이 학습 때 받던 값의 2배 정도가 입력으로 들어옴.
   이 차이를 맞춰주기 위해 테스트 시에는 드롭 확률을 곱해줌. (p=0.2였다면 테스트 시에는 0.8을 곱해서 전달)
-  
-  ```
-  
-  ```
-  Monte Carlo Dropout 이란?
-  
-  ...
   ```
 ---
 # <2> Related Work
@@ -50,11 +43,71 @@
   - Medical Domain에선 U-Net(Convolutional + Deconvolutional architecture)이 잘 쓰임
 ---
 # <3> Proposed methodology
-1. Image uncertainty estimation : **Kullback-Leibler (KL)**
-- Complementary Sample Selection을 위한 active learning은 unlabeled data의 고유한 분포에 근거함
+## 1. Image uncertainty estimation
+### KL Divergence
+- Complementary Sample Selection을 위한 active learning은 unlabeled data의 고유한 분포를 알아야함
+  - Posterior Distribution(=Parameter Distribution)을 임의로 가정 후 근사치함
+  - 두 확률분포(임의로 가정한 분포와 근사치한 분포)의 차이를 최소화하여 network의 가중치 q(w)를 구할 수 있음
+  ```
+  고유의 분포를 어떻게 알 수 있을까?(Parameter Distribution) - Variational Inference(변분추론) 활용
+  
+  KL(Kullback-Leibler) Divergence를 통해 두 확률분포(임의로 가정한 분포와 근사치한 분포)의 차이를 계산하고, 이를 최소화시키는 파라미터를 구할 수 있음
+  ```
+    Kullback-Leibler Divergence(두 확률분포의 차이를 계산)
+    
+    ![image](https://user-images.githubusercontent.com/108987773/218925492-fbd93bcf-48a0-456a-90cc-fdc7f3ab0497.png)
 
+### Monte Carlo Dropout (MC Dropout)
+- 가중치 q(w)를 추정하고자 Monte Carlo Dropout 을 사용함
+- 네트워크 가중치(q(w))를 통해 Dropout효과로 동일한 픽셀에서 T개(Dropout Step)의 다른 예측의 분산을 계산하는 예측 레이블의 불확실성을 추정할 수 있음 
+- Pixel-wise Uncertainty Maps의 정확성은 T(Dropout Step)과 확률인 p(Dropout probability)에 의해 결정
+- p(Dropout probability)가 높음 : 네트워크 가중치의 높은 분산 -> 일관된 결과를 만들기 어려움
 
+### CEAL complementary Sample Selection
+- 윤곽에서 멀어질수록, 예측의 전반적인 uncertainty의 기여도가 커져야함
+- 예측한 segmentation에 대한 distance map을 계산하여 가중치를 부여
+  - Distance Map : 윤곽의 가장 가까운 pixel과의 euclidean거리 계산 -> 윤곽에서 먼 pixel에 대한 가치가 boosted됨
+- Distance Map * Uncertainty Map -> 윤과과 멀어질수록 더 높은 점수를 얻음
+- 결론적으로, uncertainty map에서 더 두꺼운 윤곽선은 더 두껍게 더 얇은선은 더 얇게 만들어줌
 
+## 2. Complementary Sample Selection
+  ![image](https://user-images.githubusercontent.com/108987773/218933005-059635bb-f992-4477-83ab-64a39ccd8552.png)
+  - Uncertainty Score가 정의됨 
+  - 왼쪽 그래프 : Ground Truth를 가지고 평가한 것이라 실제로는 Uncertainty(세로축)만 추정할 수 있음
+    - (1) Undetected Melanomas : High certainty를 가졌으나 prediction이 낮음 -> annotation받아야할 1순위(The most informative candidates to be manualy annotated)
+    - (2) Highly uncertain samples : annotation받아야할 2순위
+    - (3) Certain Samples : Best candidates to be selected as a pseudo-labels
+    - (4) Uncertain and wrong predictions : 가장 좋지 않은 case로 active learning을 반복해서 줄어야함
+  - 오른쪽 그래프 : Visualization을 Uncertainty에 사영하여 count함
+---
+# <4> Results and Future work
+1. Dataset : ISIC 2017 challenge dataset :: Skin Lesion Analysis towards melanoma detection
+  ![image](https://user-images.githubusercontent.com/108987773/218935512-8ff25a7d-f7a8-4a79-a4ca-3e1af20c8314.png)
+  
+  - Active Learning Scenario를 가정하기 위해 일부만 Ground Truth로 사용하여 초기 network를 학습하는 용도로 사용
+  - 나머지 Ground Truth는 human annotator가 제공하는 것처럼 활용
+
+2. 변형
+  - Original : 2,000RGB dermoscopy image + binary mask
+  - Modified : Gray Scale Image, CNN(Unet) input 에 맞게 사이즈 조절
+
+3. 학습
+  - Training set은 Cost-Effective Active Learning 방법론에 근거하여 초기화함
+  - Label data를 랜덤으로 추출한 후 나머지는 Label을 지움
+  - Data Augmentation 적용
+  
+    ![image](https://user-images.githubusercontent.com/108987773/218939702-e1fd939f-e00f-45d4-9705-a387d58a6c52.png)
+  - Active Learning Loop의 각 반복에서 sample의 선택은 heuristic parameter로 근거함
+  - 초기 600개의 sample 학습을 싲가하여 매 반복마다 1000개의 이미지를 Label 하여 학습에 추가함
+    - 매 반복마다 제기된 알고리즘
+      - melanoma가 없는 이미지 10개
+      - uncertainty가 높은 이미지 10개
+      - Random 15개
+  - 특정 임계값 이상의 confidence score를 가지면 pseudo label 하여 training set에 추가
+
+4. 결과
+  - Segmentation 의 정량적 평가는 Dice Coefficient로 계산함
+  - 9번의 반복 active learning 후(CNN 2epoch) 74%의 성능을 보임 => (4) region에 여전히 sample 이 
 
 
 
